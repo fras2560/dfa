@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Does Graph G contain Graph H</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{{ url_for('static', filename="css/bs.css") }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename="css/style.css") }}" rel="stylesheet">
+    <!-- Custom CSS -->
+    <script src="http://d3js.org/d3.v2.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <div id="page-content-wrapper">
+        <div class="container">
+            <div class="row">
+                <div id="dfa" class="col-lg-6">
+                    <h3>
+                        DFA
+                    </h3>
+                </div>
+                <table id="dfa_table" class="table table-bordered">
+                	<thead>
+                		<th> States</th>
+                		<th> 0 </th>
+                		<th> 1 </th>
+                	</thead>
+                	<tbody>
+
+                	</tbody>
+
+                </table>
+            </div>
+        </div>
+    </div>
+	<script src="{{ url_for('static', filename="js/bootstrap.min.js") }}"></script>
+	<script src="{{ url_for('static', filename="js/graph.js") }}"></script>
+</body>
+</html>
