@@ -1,7 +1,8 @@
 // set up SVG for D3
 var width  = 960,
     height = 500,
-    colors = d3.scale.category10();
+    colors = d3.scale.category10()
+    padding = 5;
 
 var svg = d3.select('#dfa')
   .append('svg')
@@ -65,11 +66,13 @@ var drag_line = svg.append('svg:path')
 
 // handles to link and node element groups
 var path = svg.append('svg:g').selectAll('path'),
-    circle = svg.append('svg:g').selectAll('g');
+    circle = svg.append('svg:g').selectAll('g'),
+    labels = svg.append('svg:g').selectAll('text');
 
 // mouse event vars
 var selected_node = null,
     selected_link = null,
+    selected_label = null,
     mousedown_link = null,
     mousedown_node = null,
     mouseup_node = null;
@@ -97,32 +100,31 @@ function tick() {
         targetY = d.target.y - (targetPadding * normY);
     return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
   });
-  path.attr('')
+
+  labels.attr('transform', function(d){
+    var x = Math.floor((d.target.x + d.source.x) / 2) - padding;
+    var y = Math.floor((d.target.y + d.source.y) / 2) - padding;
+    return 'translate('+ x + ',' + y + ')';
+  });
 
   circle.attr('transform', function(d) {
     return 'translate(' + d.x + ',' + d.y + ')';
   });
 }
 
-// update graph (called when needed)
-function restart() {
-  // path (link) group
+function path_restart(){
   path = path.data(links);
 
   // update existing links
   path.classed('selected', function(d) { return d === selected_link; })
     .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
     .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; });
-
-
-
   // add new links
   var l = path.enter().append('svg:path')
     .attr('class', 'link')
     .classed('selected', function(d) { return d === selected_link; })
     .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
     .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; })
-    .style('stroke', function(d) { return d.alphabet.join(); })
     .on('mousedown', function(d) {
       if(d3.event.ctrlKey) return;
 
@@ -135,8 +137,26 @@ function restart() {
     });
   // remove old links
   path.exit().remove();
+}
 
+function label_restart(){
+  labels = labels.data(links)
+  
+  // update old labels
+  labels.classed('selected', function(d) {return d === selected_label; })
 
+  // add new labels
+  var l = labels.enter().append('svg:text')
+      .attr('x', 0)
+      .attr('y', 0)
+      .attr('class', 'label')
+      .style('stroke', function(d) { return d3.rgb(255,0,0).toString();})
+      .text(function(d) {return d.alphabet.join()})
+  //remove old labels
+  labels.exit().remove();
+}
+
+function circle_restart(){
   // circle (node) group
   // NB: the function arg is crucial here! nodes are known by id, not by index!
   circle = circle.data(nodes, function(d) { return d.id; });
@@ -237,7 +257,14 @@ function restart() {
       .text(function(d) { return d.id; });
   // remove old nodes
   circle.exit().remove();
+}
 
+// update graph (called when needed)
+function restart() {
+  // update the three sets of components
+  path_restart();
+  label_restart();
+  circle_restart();
   // set the graph in motion
   force.start();
 }

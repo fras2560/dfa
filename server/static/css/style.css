@@ -50,6 +50,10 @@ text {
   pointer-events: none;
 }
 
+text.label{
+  color: rgb(255,0,0);
+}
+
 text.id {
   text-anchor: middle;
   font-weight: bold;
