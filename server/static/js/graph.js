@@ -112,7 +112,7 @@ function tick() {
   });
 }
 
-function path_restart(){
+function pathRestart(){
   path = path.data(links);
 
   // update existing links
@@ -139,11 +139,12 @@ function path_restart(){
   path.exit().remove();
 }
 
-function label_restart(){
+function labelRestart(){
   labels = labels.data(links)
   
   // update old labels
   labels.classed('selected', function(d) {return d === selected_label; })
+    .text(function(d) {return d.alphabet.join();})
 
   // add new labels
   var l = labels.enter().append('svg:text')
@@ -151,12 +152,13 @@ function label_restart(){
       .attr('y', 0)
       .attr('class', 'label')
       .style('stroke', function(d) { return d3.rgb(255,0,0).toString();})
+      .style('fill', function(d) { return d3.rgb(0,255,0).toString();})
       .text(function(d) {return d.alphabet.join()})
   //remove old labels
   labels.exit().remove();
 }
 
-function circle_restart(){
+function circleRestart(){
   // circle (node) group
   // NB: the function arg is crucial here! nodes are known by id, not by index!
   circle = circle.data(nodes, function(d) { return d.id; });
@@ -262,9 +264,10 @@ function circle_restart(){
 // update graph (called when needed)
 function restart() {
   // update the three sets of components
-  path_restart();
-  label_restart();
-  circle_restart();
+  pathRestart();
+  labelRestart();
+  circleRestart();
+  refreshTable();
   // set the graph in motion
   force.start();
 }
@@ -377,7 +380,36 @@ function keydown() {
       }
       restart();
       break;
+    case 48: // 0
+      if (selected_link){
+        if (!contains(selected_link.alphabet, 0)){
+          selected_link.alphabet.push(0);
+          selected_link.alphabet.sort(function(a, b){return a-b});
+        }
+        
+      }
+      restart();
+      break;
+    case 49: // 1
+      if (!contains(selected_link.alphabet, 1)){
+          selected_link.alphabet.push(1);
+          selected_link.alphabet.sort(function(a, b){return a-b});
+      }
+      restart();
+      break;
   }
+}
+
+function contains(array, element){
+  var found = false;
+  var i=0;
+  while (!found && i < array.length){
+    if (array[i] == element){
+      found = true
+    }
+    i += 1;
+  }
+  return found
 }
 
 function keyup() {
@@ -402,5 +434,30 @@ d3.select(window)
 restart();
 
 function refreshTable(){
+  $('#dfa_table tbody').empty();
+  var entry = '';
+  var id;
+  var map = {};
+  var node,link,letter;
+  for(node = 0; node < nodes.length; node++){
+    id = nodes[node].id;
+    entry = '<tr><td>' + id; + '</td>';
+    map = {0:'<td></td>', 1:'<td></td>'}
+    //now find state transitions
+    for (link = 0; link < links.length; link ++){
+      if (links[link].source.id == id && links[link].right == true){
+        for(letter = 0; letter< links[link].alphabet.length; letter++ ){
+          map[links[link].alphabet[letter]] = '<td>' + links[link].target.id + '</td>';
+        }
+      }else if (links[link].target.id == id && links[link].left == true){
+        for (letter = 0; letter < links[link].alphabet.length; letter++){
+          map[links[link].alphabet[letter]] = '<td>' + links[link].source.id + '</td>';
+        }
 
+      }
+    }
+    entry += map[0] + map[1] + '</tr>';
+    $('#dfa_table tbody').append(entry);
+    console.log(map);
+  }
 }
