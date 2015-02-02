@@ -20,8 +20,8 @@ var nodes = [
   ],
   lastNodeId = 2,
   links = [
-    {source: nodes[0], target: nodes[1], left: false, right: true, alphabet: [0] },
-    {source: nodes[1], target: nodes[2], left: false, right: true, alphabet: [1] }
+    {source: nodes[0], target: nodes[1], left: false, right: true, alphabet: [0], bend: 1 },
+    {source: nodes[1], target: nodes[2], left: false, right: true, alphabet: [1], bend: 1}
   ];
 
 var alphabet = [0,1];
@@ -82,14 +82,12 @@ function resetMouseVars() {
   mouseup_node = null;
   mousedown_link = null;
 }
-
-// update force layout (called automatically each iteration)
-function tick() {
-  // draw directed edges with proper padding from node centers
-  path.attr('d', function(d) {
-    var deltaX = d.target.x - d.source.x,
+function linkArc(d){
+  var deltaX = d.target.x - d.source.x,
         deltaY = d.target.y - d.source.y,
         dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY),
+        middleX = deltaX > deltaY ? Math.floor((d.source.x+d.target.x)/2) : d.source.x + d.bend * padding,
+        middleY = deltaY > deltaX ? Math.floor((d.source.y+d.target.y)/2) : d.source.y + d.bend * padding
         normX = deltaX / dist,
         normY = deltaY / dist,
         sourcePadding = d.left ? 17 : 12,
@@ -98,12 +96,20 @@ function tick() {
         sourceY = d.source.y + (sourcePadding * normY),
         targetX = d.target.x - (targetPadding * normX),
         targetY = d.target.y - (targetPadding * normY);
-    return 'M' + sourceX + ',' + sourceY + 'L' + targetX + ',' + targetY;
-  });
+  var d1 = deltaX > deltaY ? dist * d.bend : dist;
+  var d2 = deltaY > deltaX ? dist * d.bend : dist
+  return "M" + sourceX + "," + sourceY + "A" + d1 + "," + d2 + " 0 0,1 " + targetX + "," + targetY;
+
+}
+
+// update force layout (called automatically each iteration)
+function tick() {
+  // draw directed edges with proper padding from node centers
+  path.attr('d', linkArc);
 
   labels.attr('transform', function(d){
-    var x = Math.floor((d.target.x + d.source.x) / 2) - padding;
-    var y = Math.floor((d.target.y + d.source.y) / 2) - padding;
+    var x = Math.floor((d.target.x + d.source.x) / 2);
+    var y = Math.floor((d.target.y + d.source.y) / 2);
     return 'translate('+ x + ',' + y + ')';
   });
 
