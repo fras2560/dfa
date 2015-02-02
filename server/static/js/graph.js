@@ -96,9 +96,8 @@ function linkArc(d){
         sourceY = d.source.y + (sourcePadding * normY),
         targetX = d.target.x - (targetPadding * normX),
         targetY = d.target.y - (targetPadding * normY);
-  var d1 = deltaX > deltaY ? dist * d.bend : dist;
-  var d2 = deltaY > deltaX ? dist * d.bend : dist
-  return "M" + sourceX + "," + sourceY + "A" + d1 + "," + d2 + " 0 0,1 " + targetX + "," + targetY;
+  var sweepFlag = d.bend > 0 ? 1 : 0
+  return "M" + sourceX + "," + sourceY + "A" + dist + "," + dist + " 0 0," + sweepFlag + targetX + "," + targetY;
 
 }
 
@@ -237,16 +236,18 @@ function circleRestart(){
         target = mousedown_node;
         direction = 'left';
       }
-
+      // find if one link already exists
       var link;
       link = links.filter(function(l) {
         return (l.source === source && l.target === target);
-      })[0];
+      });
 
-      if(link) {
+      if(link && link.length < 2) {
+        link = {source: source, target: target, left: false, right: false, alphabet:[], bend: -1};
         link[direction] = true;
+        links.push(link);
       } else {
-        link = {source: source, target: target, left: false, right: false, alphabet:[]};
+        link = {source: source, target: target, left: false, right: false, alphabet:[], bend: 1};
         link[direction] = true;
         links.push(link);
       }
