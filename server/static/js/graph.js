@@ -241,12 +241,14 @@ function circleRestart(){
       link = links.filter(function(l) {
         return (l.source === source && l.target === target);
       });
-
-      if(link && link.length < 2) {
-        link = {source: source, target: target, left: false, right: false, alphabet:[], bend: -1};
-        link[direction] = true;
-        links.push(link);
-      } else {
+      console.log(link);
+      if(link.length == 1) {
+        if (link[0][direction] == false){
+          link = {source: source, target: target, left: false, right: false, alphabet:[], bend: -1};
+          link[direction] = true;
+          links.push(link);
+        }
+      } else if (link.length == 0) {
         link = {source: source, target: target, left: false, right: false, alphabet:[], bend: 1};
         link[direction] = true;
         links.push(link);
@@ -465,6 +467,5 @@ function refreshTable(){
     }
     entry += map[0] + map[1] + '</tr>';
     $('#dfa_table tbody').append(entry);
-    console.log(map);
   }
 }
