@@ -48,5 +48,10 @@
     </div>
 	<script src="{{ url_for('static', filename="js/bootstrap.min.js") }}"></script>
 	<script src="{{ url_for('static', filename="js/graph.js") }}"></script>
+    <script>
+        $( document ).ready(function() {
+            init('dfa', 960, 500);
+        });
+    </script>
 </body>
 </html>
