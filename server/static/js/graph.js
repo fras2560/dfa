@@ -106,12 +106,6 @@ function tick() {
   // draw directed edges with proper padding from node centers
   path.attr('d', linkArc);
 
-  labels.attr('transform', function(d){
-    var x = Math.floor((d.target.x + d.source.x) / 2);
-    var y = Math.floor((d.target.y + d.source.y) / 2);
-    return 'translate('+ x + ',' + y + ')';
-  });
-
   circle.attr('transform', function(d) {
     return 'translate(' + d.x + ',' + d.y + ')';
   });
@@ -123,10 +117,13 @@ function pathRestart(){
   // update existing links
   path.classed('selected', function(d) { return d === selected_link; })
     .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
-    .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; });
+    .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; })
+    .attr('id', function(d, i) { return 'link_' + i;})
+  ;
   // add new links
   var l = path.enter().append('svg:path')
     .attr('class', 'link')
+    .attr('id', function(d, i) { return 'link_' + i})
     .classed('selected', function(d) { return d === selected_link; })
     .style('marker-start', function(d) { return d.left ? 'url(#start-arrow)' : ''; })
     .style('marker-end', function(d) { return d.right ? 'url(#end-arrow)' : ''; })
@@ -146,16 +143,23 @@ function pathRestart(){
 
 function labelRestart(){
   labels = labels.data(links)
-  
-  // update old labels
-  labels.classed('selected', function(d) {return d === selected_label; })
-    .text(function(d) {return d.alphabet.join();})
+  var transition = labels.transition();
+  // update existins labels
+  $('.textpath').remove();
+  for (var i = 0; i < links.length; i++){
+    d3.select("#label_" + i).text(function(d) {return d.alphabet.join()})
+  }
+  //console.log($('.textpath'));
 
   // add new labels
   var l = labels.enter().append('svg:text')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('class', 'label')
+      .attr('x', 6)
+      .attr('dy', 15)
+      .attr('class', 'label');
+  l.append('textPath')
+      .attr('class', '.textpath')
+      .attr('xlink:href', function(d, i) { return '#link_' + i })
+      .attr('id', function(d, i) {return 'label_' + i})
       .style('stroke', function(d) { return d3.rgb(255,0,0).toString();})
       .style('fill', function(d) { return d3.rgb(0,255,0).toString();})
       .text(function(d) {return d.alphabet.join()})
@@ -241,7 +245,6 @@ function circleRestart(){
       link = links.filter(function(l) {
         return (l.source === source && l.target === target);
       });
-      console.log(link);
       if(link.length == 1) {
         if (link[0][direction] == false){
           link = {source: source, target: target, left: false, right: false, alphabet:[], bend: -1};
@@ -400,9 +403,11 @@ function keydown() {
       restart();
       break;
     case 49: // 1
-      if (!contains(selected_link.alphabet, 1)){
-          selected_link.alphabet.push(1);
-          selected_link.alphabet.sort(function(a, b){return a-b});
+      if (selected_link){
+        if (!contains(selected_link.alphabet, 1)){
+            selected_link.alphabet.push(1);
+            selected_link.alphabet.sort(function(a, b){return a-b});
+        }
       }
       restart();
       break;
