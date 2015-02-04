@@ -469,15 +469,10 @@ function refreshTable(){
     map = {0:'<td></td>', 1:'<td></td>'}
     //now find state transitions
     for (link = 0; link < links.length; link ++){
-      if (links[link].source.id == id && links[link].right == true){
+      if (links[link].source.id == id){
         for(letter = 0; letter< links[link].alphabet.length; letter++ ){
           map[links[link].alphabet[letter]] = '<td>' + links[link].target.id + '</td>';
         }
-      }else if (links[link].target.id == id && links[link].left == true){
-        for (letter = 0; letter < links[link].alphabet.length; letter++){
-          map[links[link].alphabet[letter]] = '<td>' + links[link].source.id + '</td>';
-        }
-
       }
     }
     entry += map[0] + map[1] + '</tr>';
