@@ -9,7 +9,7 @@ var width,
     nodes,
     links,
     lastNodeId,
-    starting_state,
+    startingState,
     alphabet,
     force,
     drag_line,
@@ -20,7 +20,9 @@ var width,
     mousedown_link = null,
     mousedown_node = null,
     mouseup_node = null,
-    lastKeyDown = -1;
+    lastKeyDown = -1
+    transitionFunction = {},
+    finishStates = [];
 
 function resetMouseVars() {
   /*
@@ -158,7 +160,8 @@ function circleRestart(){
   // update existing nodes (reflexive & selected visual states)
   circle.selectAll('circle')
     .style('fill', function(d) { return (d === selected_node) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id); })
-    .classed('reflexive', function(d) { return d.reflexive; });
+    .classed('reflexive', function(d) { return d.reflexive; })
+    .classed('accepting', function(d) {return d.accepting});
   // add new nodes
   var g = circle.enter().append('svg:g');
   g.append('svg:circle')
@@ -167,6 +170,7 @@ function circleRestart(){
     .style('fill', function(d) { return (d === selected_node) ? d3.rgb(colors(d.id)).brighter().toString() : colors(d.id); })
     .style('stroke', function(d) { return d3.rgb(colors(d.id)).darker().toString(); })
     .classed('reflexive', function(d) { return d.reflexive; })
+    .classed('accepting', function(d) {return d.accepting})
     .on('mouseover', function(d) {
       if(!mousedown_node || d === mousedown_node) return;
       // enlarge target node
@@ -249,6 +253,7 @@ function restart() {
     None
   */
   // update the three sets of components
+  console.log(transitionFunction);
   pathRestart();
   labelRestart();
   circleRestart();
@@ -270,10 +275,11 @@ function mousedown() {
 
   // insert new node at point
   var point = d3.mouse(this),
-      node = {id: ++lastNodeId, reflexive: false};
+      node = {id: ++lastNodeId, reflexive: false, accepting: false};
   node.x = point[0];
   node.y = point[1];
   nodes.push(node);
+  addTransition(node.id, alphabet);
 
   restart();
 }
@@ -340,7 +346,8 @@ function linkKeyEvent(keyCode){
     case 8: //backspace
     case 46: //delete
       if (selected_link.alphabet.length > 0){
-        selected_link.alphabet.pop();
+        var letter = selected_link.alphabet.pop();
+        deleteTransition([selected_link.source.id, letter]);
       }else{
         links.splice(links.indexOf(selected_link), 1);
         selected_link = null;
@@ -348,14 +355,16 @@ function linkKeyEvent(keyCode){
       }
       break;
     case 48: // 0
-        if (!contains(selected_link.alphabet, 0)){
+        if (checkTransition(selected_link.source.id, 0)){
           selected_link.alphabet.push(0);
+          addTransition([selected_link.source.id, 0], selected_link.target.id)
           selected_link.alphabet.sort(function(a, b){return a-b});
         }
       break;
     case 49: // 1
-        if (!contains(selected_link.alphabet, 1)){
+        if (checkTransition(selected_link.source.id, 1)){
             selected_link.alphabet.push(1);
+            addTransition([selected_link.source.id, 1], selected_link.target.id)
             selected_link.alphabet.sort(function(a, b){return a-b});
         }
       break;
@@ -375,14 +384,22 @@ function nodeKeyEvent(keyCode){
   switch(keyCode){
     case 8: //backspace
     case 46: //delete
+      deleteState(selected_node.id)
       nodes.splice(nodes.indexOf(selected_node), 1);
       spliceLinksForNode(selected_node);
       selected_link = null;
       selected_node = null;
       restart();
       break;
+    case 70: // f
+      if (! contains(finishStates, selected_node.id)){
+        finishStates.push(selected_node.id);
+        selected_node.accepting = true;
+        restart()
+      }
+      break;
     case 83: // s
-      starting_state = selected_node;
+      startingState = selected_node;
       restart();
       break;
   }
@@ -408,6 +425,8 @@ function keydown() {
     nodeKeyEvent(lastKeyDown);
   }else if(selected_link){
     linkKeyEvent(lastKeyDown);
+  }else{
+
   }
 }
 
@@ -478,8 +497,132 @@ function refreshTable(){
     entry += map[0] + map[1] + '</tr>';
     $('#dfa_table tbody').append(entry);
   }
-  if (starting_state){
-    $('#state_' + starting_state.id).addClass('starting');
+  if (startingState){
+    $('#state_' + startingState.id).addClass('starting');
+  }
+}
+
+function initializeTransitions(states, alphabet){
+  /*
+    a function that initializes the transition function
+    Parmaeters:
+      states: array of the current states
+      alphabet: the alphabet of dfa
+    Returns:
+      None
+  */
+  var state, letter;
+  for (state = 0; state< states.length; state++){
+    for(letter = 0; letter < alphabet.length; letter++){
+      transitionFunction[[states[state], alphabet[letter]]] = null;
+    }
+  }
+}
+
+function addTransition(key, transition){
+  /*
+    a function that add a transtion to the transition function
+    Parameters:
+      key: a key pair [state id, letter]
+      transition: the state to transition to
+    Returns:
+      None
+  */
+  transitionFunction[key] = transition;
+}
+function deleteTransition(key){
+  /*
+    a function that deletes a transition
+    Parameters:
+      key: a key pair [state id, letter]
+    Returns:
+      None
+  */
+  transitionFunction[key] = null;
+}
+
+function addState(index, alphabet){
+  /*
+    a function that adds a state to the transition function
+    Parameters:
+      index: the index of the node to add
+      alphabet: the dfa language
+    Returns:
+      None
+  */
+  for(var letter = 0; letter < alphabet.length; letter++){
+    transitionFunction[[index, letter]] = null;
+  }
+}
+
+function deleteState(index, alphabet){
+  /*
+    a function that delete a state from the transition function
+    Parameters:
+      index: the index of the node to delete
+      alphabet: the alphabet of the dfa
+    Returns:
+      None
+  */
+  for (var letter = 0; letter < alphabet.length; letter++){
+    delete transitionFunction[[index, letter]];
+  }
+}
+
+function checkTransition(state, letter){
+  /*
+    a function that check if the state does not already have a transition
+    Parameters:
+      key: a key pair [state id, letter]
+    Returns:
+      allowed: true if  can add transition (boolean)
+  */
+  var allowed = false;
+  console.log(transitionFunction[[state, letter]]);
+  if (transitionFunction[[state, letter]] === null){  
+    allowed = true;
+  }else{
+    alert("The state already has a transition for that letter");
+  }
+  return allowed;
+}
+
+function animate(){
+  var string = $('#inputString').val();
+  if (startingState){
+    if(finishStates.length > 0){
+      console.log(startingState)
+      animate_aux(string, 0, startingState.id);
+    }else{
+      alert("String will not be accepted since not accepting state");
+    }
+  }else{
+    alert("No Starting State");
+  }
+}
+
+function animate_aux(string, position, state){
+  var letter, next_state
+  console.log("String:", string);
+  console.log("Position:", position);
+  console.log("State:", state);
+  
+  if (position < string.length){
+    letter = string[position];
+    position += 1;
+    next_state = transitionFunction[[state, letter]];
+    if (next_state !== null){
+      animate_aux(string, position, next_state)
+    }else{
+      alert("No transition state so assume error state: String not accepted");
+    }
+  }else{
+    console.log(state);
+    if(contains(finishStates, state)){
+      alert("String is accepted by DFA")
+    }else{
+      alert("String was not accepted by DFA")
+    }
   }
 }
 
@@ -502,15 +645,20 @@ function init(id, w, h){
     .attr('width', width)
     .attr('height', height);
   nodes = [
-    {id: 0, reflexive: false},
-    {id: 1, reflexive: false},
-    {id: 2, reflexive: false}
+    {id: 0, reflexive: false, accepting: false},
+    {id: 1, reflexive: false, accepting: false},
+    {id: 2, reflexive: false, accepting: false}
   ],
   lastNodeId = 2,
   links = [
-    {source: nodes[0], target: nodes[1], left: false, right: true, alphabet: [0], bend: 1 },
+    {source: nodes[0], target: nodes[1], left: false, right: true, alphabet: [0], bend: 1},
     {source: nodes[1], target: nodes[2], left: false, right: true, alphabet: [1], bend: 1}
   ];
+  initializeTransitions([0, 1, 2], [0, 1]);
+  console.log(transitionFunction);
+  addTransition([0,0], 1);
+  addTransition([1,1], 2);
+  console.log(transitionFunction);
   alphabet = [0,1];
   // init D3 force layout
   force = d3.layout.force()

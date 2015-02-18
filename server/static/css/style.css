@@ -49,6 +49,10 @@ circle.node.reflexive {
   stroke-width: 2.5px;
 }
 
+circle.node.accepting {
+  stroke: #000;
+  stroke-width: 4.0px;
+}
 text {
   font: 12px sans-serif;
   pointer-events: none;

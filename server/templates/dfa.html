@@ -39,19 +39,46 @@
                 		<th> 1 </th>
                 	</thead>
                 	<tbody>
-
                 	</tbody>
-
+                    <tfoot>
+                        <th colspan=3>*Green States is start state</th>
+                    </tfoot>
                 </table>
+                <form>
+                    <button id ="animate" class="btn btn-default" type="button" onclick="">Check!</button>
+                    <input type="text" name="inputString" id="inputString" value="">
+                    <button id="btn0" class="btn btn-mini" type="button" onclick="">0</button>
+                    <button id="btn1" class="btn btn-mini" type="button" onclick="">1</button>
+                    <button id="btnDel" class="btn btn-mini" type="button" onclick="">DEL</button>
+                </form>
             </div>
         </div>
     </div>
 	<script src="{{ url_for('static', filename="js/bootstrap.min.js") }}"></script>
 	<script src="{{ url_for('static', filename="js/graph.js") }}"></script>
     <script>
+        var temp;
         $( document ).ready(function() {
             init('dfa', 960, 500);
         });
+        $("#animate").click(function(){
+            animate();
+        });
+        $("#btn0").click(function(){
+            temp = $("#inputString").val(); 
+            $("#inputString").val(temp + "0");
+        });
+        $("#btn1").click(function(){
+            temp = $("#inputString").val(); 
+            $("#inputString").val(temp + "1");
+        });
+        $("#btnDel").click(function(){
+            temp = $("#inputString").val(); 
+            if (temp.length > 0){
+                $("#inputString").val(temp.slice(0, -1));
+            }
+        });
+
     </script>
 </body>
 </html>
