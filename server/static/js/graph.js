@@ -403,6 +403,7 @@ function nodeKeyEvent(keyCode){
       selected_node = null;
       restart();
       break;
+    case 65: // a
     case 70: // f
       if (! contains(finishStates, selected_node.id)){
         finishStates.push(selected_node.id);
@@ -422,8 +423,8 @@ function nodeKeyEvent(keyCode){
       if (allowed){
         var link = {source: selected_node.id, target: selected_node.id, left: false, right: false, alphabet:[], bend: 1};
         links.push(link);
-
       }
+      break;
     case 83: // s
       startingState = selected_node;
       restart();

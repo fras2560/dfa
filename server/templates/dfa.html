@@ -54,9 +54,60 @@
             </div>
         </div>
     </div>
+    <!-- modal -->
+    <div class="modal fade" id="modal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="modalTitle"></h4>
+          </div>
+          <div class="modal-body" id="modalBody" >
+            <p id="modalText"></p>
+            <ul id="modalList">
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+    <a class="btn btn-mini btn-link " onclick="showAbout()">About</a>
+    <a class="btn btn-mini btn-link " onclick="showHelp();">Help</a>
+    <a class="btn btn-mini btn-link " href="http://jquery.com/">jQuery</a>
+    <a class="btn btn-mini btn-link " href="http://twitter.github.io/bootstrap/">Bootstrap</a>
+    <a class="btn btn-mini btn-link " href="http://flask.pocoo.org/">Flask</a>
+    <a class="btn btn-mini btn-link " href="http://d3js.org/">D3</a>
 	<script src="{{ url_for('static', filename="js/bootstrap.min.js") }}"></script>
 	<script src="{{ url_for('static', filename="js/graph.js") }}"></script>
     <script>
+        function showAbout(){
+            $("#modalTitle").text("About");
+            $('#modalText').empty();
+            $('#modalText').append('A simple web app to help draw a deterministic finite automata (<a href="http://en.wikipedia.org/wiki/Deterministic_finite_automaton" target="_blank">DFA</a>) and to check if strings are accepted/rejected by DFA. <br/>Created by: Dallas Fraser <br/>Tools used:');
+            $('#modalBody ul').empty();
+            $('#modalBody ul').append("<li>Flask -> python framework</li>");
+            $('#modalBody ul').append("<li>D3 -> javascript visualization library</li>");
+            $('#modal').modal("show");
+        }
+
+        function showHelp(){
+            $("#modalTitle").text("Help");
+            $('#modalText').empty();
+            $('#modalText').append('If your question is un-answered feel free to send an email to <a href="mailto:fras2560@mylaurier.ca?Subject=DFA%20App" target="_top">Dallas Fraser</a>');
+            $('#modalBody ul').empty();
+            $('#modalBody ul').append("<li>Click ->  to add a node</li>");
+            $('#modalBody ul').append("<li>Click on node -> to select a node</li>");
+            $('#modalBody ul').append("<li>Del/Backspace to delete selected node</li>");
+            $('#modalBody ul').append("<li>S on selected node -> Set node as starting state</li>");
+            $('#modalBody ul').append("<li>L on selected node -> will add self loop</li>");
+            $('#modalBody ul').append("<li>A/F on selected node -> set node as accepting state</li>");
+            $('#modalBody ul').append("<li>Click on link -> to select a link</li>");
+            $('#modalBody ul').append("<li>Del/Backspace on selected link -> Delete last character on transition or link if no characters</li>");
+            $('#modalBody ul').append("<li>0/1 on selected link -> Will add the character to the links transition.</li>");
+            $('#modal').modal("show")
+        }
         var temp;
         $( document ).ready(function() {
             init('dfa', 960, 500);
