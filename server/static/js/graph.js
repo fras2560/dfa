@@ -46,21 +46,33 @@ function linkArc(d){
     : a string representing the arc in SVG format (elliptical arc)
       format -> M x,y  A rx,ry x-axis-rotation large-arc-flag, sweepflag  x,y
   */
-  var deltaX = d.target.x - d.source.x,
-        deltaY = d.target.y - d.source.y,
-        dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY),
-        middleX = deltaX > deltaY ? Math.floor((d.source.x+d.target.x)/2) : d.source.x + d.bend * padding,
-        middleY = deltaY > deltaX ? Math.floor((d.source.y+d.target.y)/2) : d.source.y + d.bend * padding
-        normX = deltaX / dist,
-        normY = deltaY / dist,
-        sourcePadding = d.left ? 17 : 12,
-        targetPadding = d.right ? 17 : 12,
-        sourceX = d.source.x + (sourcePadding * normX),
-        sourceY = d.source.y + (sourcePadding * normY),
-        targetX = d.target.x - (targetPadding * normX),
-        targetY = d.target.y - (targetPadding * normY);
-  var sweepFlag = d.bend > 0 ? 1 : 0
-  return "M" + sourceX + "," + sourceY + "A" + Math.floor(dist / 2) + "," + Math.floor(dist / 2) + " 0 0," + sweepFlag + targetX + "," + targetY;
+  var deltaX, deltaY, middleX, middleY, normX, normY, sourcePadding;
+  var targetPadding, sourceX, sourceY, targetX, targetY, sweepFlag, result;
+  if (d.target.id != d.source.id){
+    deltaX = d.target.x - d.source.x;
+    deltaY = d.target.y - d.source.y;
+    dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+    middleX = deltaX > deltaY ? Math.floor((d.source.x+d.target.x)/2) : d.source.x + d.bend * padding;
+    middleY = deltaY > deltaX ? Math.floor((d.source.y+d.target.y)/2) : d.source.y + d.bend * padding;
+    normX = deltaX / dist;
+    normY = deltaY / dist;
+    sourcePadding = d.left ? 17 : 12;
+    targetPadding = d.right ? 17 : 12;
+    sourceX = d.source.x + (sourcePadding * normX);
+    sourceY = d.source.y + (sourcePadding * normY);
+    targetX = d.target.x - (targetPadding * normX);
+    targetY = d.target.y - (targetPadding * normY);
+    sweepFlag = d.bend > 0 ? 1 : 0;
+    result = "M" + sourceX + "," + sourceY + "A" + Math.floor(dist / 2) + "," + Math.floor(dist / 2) + " 0 0," + sweepFlag + targetX + "," + targetY;
+  }else{
+    sourcePadding = d.left ? 17 : 12;
+    targetPadding = d.right ? 17 : 12;
+    sourceX = d.source.x + (sourcePadding);
+    sourceY = d.source.y + (sourcePadding);
+    sweepFlag = d.bend > 0 ? 1 : 0;
+    result = "M" + sourceX + "," + sourceY + "C" + (sourceX-50) + " " + (sourceY-60) + "," + (sourceX + 50) + " " + (sourceY - 60) + "," + sourceX + " " + sourceY;    
+  }
+  return result;
 
 }
 
@@ -384,7 +396,7 @@ function nodeKeyEvent(keyCode){
   switch(keyCode){
     case 8: //backspace
     case 46: //delete
-      deleteState(selected_node.id)
+      deleteState(selected_node.id, alphabet);
       nodes.splice(nodes.indexOf(selected_node), 1);
       spliceLinksForNode(selected_node);
       selected_link = null;
@@ -398,6 +410,20 @@ function nodeKeyEvent(keyCode){
         restart()
       }
       break;
+    case 76: // l
+      var allowed = true;
+      var i = 0
+      while (allowed && i < links.length){
+        if(links[i].target.id == links[i].source.id && links[i].target.id == selected_node.id){
+          allowed  = false;
+        }
+        i += 1;
+      }
+      if (allowed){
+        var link = {source: selected_node.id, target: selected_node.id, left: false, right: false, alphabet:[], bend: 1};
+        links.push(link);
+
+      }
     case 83: // s
       startingState = selected_node;
       restart();
@@ -530,6 +556,7 @@ function addTransition(key, transition){
   */
   transitionFunction[key] = transition;
 }
+
 function deleteTransition(key){
   /*
     a function that deletes a transition
@@ -588,6 +615,13 @@ function checkTransition(state, letter){
 }
 
 function animate(){
+  /*
+    a function to animate the dfa checking a string
+    Parameters:
+      None
+    Returns:
+      None
+  */
   var string = $('#inputString').val();
   if (startingState){
     if(finishStates.length > 0){
@@ -602,6 +636,15 @@ function animate(){
 }
 
 function animate_aux(string, position, state){
+  /*
+    auxilarry function for animate
+    Parameters:
+      string: the user input string to check
+      position: the current position in the string
+      state: the current state of the dfa
+    Returns:
+      None
+  */
   var letter, next_state
   console.log("String:", string);
   console.log("Position:", position);
