@@ -291,7 +291,7 @@ function mousedown() {
   node.x = point[0];
   node.y = point[1];
   nodes.push(node);
-  addTransition(node.id, alphabet);
+  addState(node.id, alphabet);
 
   restart();
 }
